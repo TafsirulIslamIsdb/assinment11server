@@ -40,7 +40,7 @@ run().catch(console.dir);
 
 
 app.get("/", (req, res) => {
-    res.send("Assinment 11 server is Running...");
+    res.send("Assinment 11 server is Running. Running..");
   });
   
   
