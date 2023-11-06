@@ -28,8 +28,19 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const addjobCollection = client.db('JobsDB').collection('jobs');
+    
+
+
+    app.post('/addjobs', async (req, res) => {
+      const newJob = req.body;
+      console.log(newJob);
+      const result = await addjobCollection.insertOne(newJob);
+      res.send(result);
+      console.log("This is the post   Api");
+    })
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+   // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
