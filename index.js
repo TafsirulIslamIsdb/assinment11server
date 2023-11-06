@@ -2,9 +2,18 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require('dotenv').config()
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5001;
 const { MongoClient, ServerApiVersion } = require('mongodb');
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+
+    // 'https://cars-doctor-6c129.web.app',
+    // 'https://cars-doctor-6c129.firebaseapp.com'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 
@@ -29,8 +38,26 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const addjobCollection = client.db('JobsDB').collection('jobs');
-    
 
+
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      console.log('user for token', user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      })
+        .send({ success: true });
+    })
+
+    app.post('/logout', async (req, res) => {
+      const user = req.body;
+      console.log('logging out', user);
+      res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+    })
 
     app.post('/addjobs', async (req, res) => {
       const newJob = req.body;
@@ -40,7 +67,7 @@ async function run() {
       console.log("This is the post   Api");
     })
     // Send a ping to confirm a successful connection
-   // await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
@@ -51,10 +78,10 @@ run().catch(console.dir);
 
 
 app.get("/", (req, res) => {
-    res.send("Assinment 11 server is Running. Running..");
-  });
-  
-  
-  app.listen(port, () => {
-    console.log(`Assinment 11 is Running on port ${port}`);
-  });
+  res.send("Assinment 11 server is Running. Running..");
+});
+
+
+app.listen(port, () => {
+  console.log(`Assinment 11 is Running on port ${port}`);
+});
