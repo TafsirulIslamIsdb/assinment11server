@@ -4,7 +4,7 @@ const app = express();
 require('dotenv').config()
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5001;
-const { MongoClient, ServerApiVersion,ObjectId  } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 app.use(cors({
   origin: [
@@ -33,33 +33,34 @@ const client = new MongoClient(uri, {
   }
 });
 
-const logger = (req, res, next) => {
-  console.log('log: info', req.method, req.url);
-  next();
-}
+// const logger = (req, res, next) => {
+//   console.log('log: info', req.method, req.url);
+//   next();
+// }
 
-const verifyToken = (req, res, next) => {
-  const token = req?.cookies?.token;
+// const verifyToken = (req, res, next) => {
+//   const token = req?.cookies?.token;
   // console.log('token in the middleware', token);
   // no token available 
-  if (!token) {
-    return res.status(401).send({ message: 'unauthorized access' })
-  }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).send({ message: 'unauthorized access' })
-    }
-    req.user = decoded;
-    next();
-  })
-}
+//   if (!token) {
+//     return res.status(401).send({ message: 'unauthorized access' })
+//   }
+//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+//     if (err) {
+//       return res.status(401).send({ message: 'unauthorized access' })
+//     }
+//     req.user = decoded;
+//     next();
+//   })
+// }
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const addjobCollection = client.db('JobsDB').collection('jobs');
-    //const myjobCollection = client.db('JobsDB').collection('myjobs');
+    const mybidsCollection = client.db('JobsDB').collection('mybids');
+    //console.log(addjobCollection,"this is connected hio");
 
 
     app.post('/jwt', async (req, res) => {
@@ -89,13 +90,29 @@ async function run() {
       console.log("This is the post   Api");
     })
 
+    //post api for mybids
+    app.post('/mybids', async (req, res) => {
+      const newJob = req.body;
+      console.log(newJob);
+      const result = await mybidsCollection.insertOne(newJob);
+      res.send(result);
+      console.log("This is the post   Api for my bids");
+    })
+
+    app.get('/mybids', async (req, res) => {
+      const cursor = mybidsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+
     app.put('/jobs/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: id }
       const options = { upsert: true };
       const updatedjobs = req.body;
       console.log("This is the put  Api");
-      
+
       //const { _id,email, jobTitle, description, category, minPrice, maxPrice } = job || {};
 
       const jobs = {
@@ -116,14 +133,14 @@ async function run() {
 
     app.delete('/jobs/:id', async (req, res) => {
       const id = req.params.id;
-      console.log("deleted id",id);
-      const query = {_id: new ObjectId(id) }
+      console.log("deleted id", id);
+      const query = { _id: new ObjectId(id) }
       const result = await addjobCollection.deleteOne(query);
-     
-      
+
+
       res.send(result);
-      
-  })
+
+    })
 
     app.get('/jobs/:id', async (req, res) => {
       const id = req.params.id;
@@ -138,13 +155,17 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     })
-    app.get('/jobs', async (req, res) => {
+
+
+
+    app.get('/jobs/:email', async (req, res) => {
       console.log(req.query.email);
-      let query = {};
-      if (req.query?.email) {
-        query = { email: req.query.email }
-      }
-      const result = await addjobCollection.find(query).toArray();
+
+      // let query = {};
+      // if (req.query?.email) {
+      //   query = { email: req.query.email }
+      // }
+      const result = await addjobCollection.find().toArray();
       res.send(result);
 
     })
