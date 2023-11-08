@@ -9,7 +9,6 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 app.use(cors({
   origin: [
     'http://127.0.0.1:5173',
-    // 'http://localhost:5001',
     'http://localhost:5173'
   ],
   credentials: true
@@ -33,34 +32,34 @@ const client = new MongoClient(uri, {
   }
 });
 
-// const logger = (req, res, next) => {
-//   console.log('log: info', req.method, req.url);
-//   next();
-// }
+const logger = (req, res, next) => {
+  console.log('log: info', req.method, req.url);
+  next();
+}
 
-// const verifyToken = (req, res, next) => {
-//   const token = req?.cookies?.token;
-  // console.log('token in the middleware', token);
-  // no token available 
-//   if (!token) {
-//     return res.status(401).send({ message: 'unauthorized access' })
-//   }
-//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-//     if (err) {
-//       return res.status(401).send({ message: 'unauthorized access' })
-//     }
-//     req.user = decoded;
-//     next();
-//   })
-// }
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  console.log('token in the middleware', token);
+ 
+  if (!token) {
+    return res.status(401).send({ message: 'unauthorized access' })
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: 'unauthorized access' })
+    }
+    req.user = decoded;
+    next();
+  })
+}
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+   
     await client.connect();
     const addjobCollection = client.db('JobsDB').collection('jobs');
     const mybidsCollection = client.db('JobsDB').collection('mybids');
-    //console.log(addjobCollection,"this is connected hio");
+    
 
 
     app.post('/jwt', async (req, res) => {
@@ -160,21 +159,16 @@ async function run() {
 
     app.get('/jobs/:email', async (req, res) => {
       console.log(req.query.email);
-
-      // let query = {};
-      // if (req.query?.email) {
-      //   query = { email: req.query.email }
-      // }
       const result = await addjobCollection.find().toArray();
       res.send(result);
 
     })
 
-    // Send a ping to confirm a successful connection
+   
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
+    
     // await client.close();
   }
 }
