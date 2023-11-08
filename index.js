@@ -139,9 +139,7 @@ async function run() {
       res.send(result);
     })
     app.get('/jobs', async (req, res) => {
-
       console.log(req.query.email);
-      console.log('token owner info', req.user)
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email }
